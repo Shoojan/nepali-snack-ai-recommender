@@ -1,0 +1,91 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 30px;
+  background: #fff8e7;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+select,
+button {
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+#results {
+  margin-top: 20px;
+}
+
+.result-item {
+  margin: 10px auto;
+  padding: 15px;
+  border-radius: 12px;
+  display: inline-block;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: popfade 0.5s ease forwards;
+  opacity: 0;
+  transform: scale(0);
+  min-width: 220px;
+  transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Category-based colors */
+.result-item[data-category="Street Food"] {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.result-item[data-category="Traditional Meal"] {
+  background: linear-gradient(135deg, #d0f0c0 0%, #a8e6cf 100%);
+}
+
+.result-item[data-category="Dessert"] {
+  background: linear-gradient(135deg, #f8c6c6 0%, #f5a9a9 100%);
+}
+
+.result-item:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes popfade {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.similarity-bar-container {
+  background: #ddd;
+  border-radius: 6px;
+  height: 18px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.similarity-bar {
+  background: #4caf50;
+  height: 100%;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: right;
+  padding-right: 5px;
+  line-height: 18px;
+  border-radius: 6px 0 0 6px;
+  transition: width 0.3s ease;
+}

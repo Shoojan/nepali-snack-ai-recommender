@@ -1,0 +1,6 @@
+snack_embeddings.json
+/node_modules
+/logs
+*.env
+/venv
+embed.js
