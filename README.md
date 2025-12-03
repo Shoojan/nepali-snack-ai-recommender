@@ -106,21 +106,21 @@ npm install
 ```
 ## How AI Recommendation Works
 1.	Embeddings Generation:
-  a. Each snack has a textual description.
-  b. SentenceTransformer converts the description into a vector (embedding).
+   	- Each snack has a textual description.
+   	- SentenceTransformer converts the description into a vector (embedding).
 3.	Similarity Calculation:
-	•	Cosine similarity between vectors determines closeness.
-	•	score = cosineSim(selectedSnack.vector, otherSnack.vector)
+	- Cosine similarity between vectors determines closeness.
+	- score = cosineSim(selectedSnack.vector, otherSnack.vector)
 4.	Category Boost:
-	•	If a snack belongs to the same category, the similarity score is slightly increased.
+  	- If a snack belongs to the same category, the similarity score is slightly increased.
 5.	Filtering & Sorting:
-	•	Only snacks with similarity above a threshold are recommended.
-	•	Top 5 recommendations are shown, ranked by final score.
+	- Only snacks with similarity above a threshold are recommended.
+	- Top 5 recommendations are shown, ranked by final score.
 6.	Dynamic Addition:
-	•	Users can add a new snack.
-	•	Missing description, emoji, or category is generated heuristically or via AI.
-	•	Embedding is generated and saved to MongoDB.
-	•	Recommendations are instantly available.
+	- Users can add a new snack.
+	- Missing description, emoji, or category is generated heuristically or via AI.
+	- Embedding is generated and saved to MongoDB.
+	- Recommendations are instantly available.
 
 ## Author
 Sujan Maharjan
