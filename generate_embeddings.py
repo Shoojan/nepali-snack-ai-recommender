@@ -1,8 +1,17 @@
-from sentence_transformers import SentenceTransformer
-import json
+#!/usr/bin/env python3
+"""
+Generate embeddings for all Nepali snacks.
+Creates snack_embeddings.json file with vector embeddings.
+"""
 
-# Initialize embedding model
-model = SentenceTransformer('all-MiniLM-L6-v2')
+import json
+import sys
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    print("Error: sentence_transformers not installed", file=sys.stderr)
+    sys.exit(1)
 
 # Nepali snacks with rich descriptions, emojis, and categories
 snacks = {
@@ -63,18 +72,34 @@ snacks = {
     }
 }
 
-# Generate embeddings
-embeddings = {}
-for name, info in snacks.items():
-    vector = model.encode(info["desc"]).tolist()
-    embeddings[name] = {
-        "vector": vector,
-        "emoji": info["emoji"],
-        "category": info["category"]
-    }
+def main():
+    try:
+        # Initialize embedding model
+        print("Loading embedding model...", file=sys.stderr)
+        model = SentenceTransformer('all-MiniLM-L6-v2')
+        print("Model loaded successfully.", file=sys.stderr)
+        
+        # Generate embeddings
+        print(f"Generating embeddings for {len(snacks)} snacks...", file=sys.stderr)
+        embeddings = {}
+        for name, info in snacks.items():
+            vector = model.encode(info["desc"]).tolist()
+            embeddings[name] = {
+                "vector": vector,
+                "emoji": info["emoji"],
+                "category": info["category"],
+                "description": info["desc"]
+            }
+            print(f"Generated embedding for {name}", file=sys.stderr)
+        
+        # Save embeddings to JSON
+        with open("snack_embeddings.json", "w") as f:
+            json.dump(embeddings, f, indent=2)
+        
+        print(f"Successfully saved {len(embeddings)} snack embeddings to snack_embeddings.json!", file=sys.stderr)
+    except Exception as e:
+        print(f"Error generating embeddings: {e}", file=sys.stderr)
+        sys.exit(1)
 
-# Save embeddings to JSON
-with open("snack_embeddings.json", "w") as f:
-    json.dump(embeddings, f, indent=2)
-
-print("Rich Nepali snack embeddings saved to snack_embeddings.json!")
+if __name__ == "__main__":
+    main()

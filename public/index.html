@@ -2,15 +2,65 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Nepali Snack Recommender</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nepali Snack AI Recommender</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>🍲 Nepali Snack Recommender 🍲</h1>
+    <h1>Nepali Snack AI Recommender 🍴🤖</h1>
+
     <select id="snackSelect"></select>
     <button id="getRecBtn">Get Recommendations</button>
-    <button id="surpriseBtn">Surprise Me 🎲</button>
+    <button id="surpriseBtn">Surprise Me 🎉</button>
+
+    <h3>Add a New Nepali Snack 🍴</h3>
+    <input id="newSnackName" placeholder="Snack Name" />
+    <select id="newSnackCategory">
+      <option value="">Select Category</option>
+      <option value="Street Food">Street Food</option>
+      <option value="Traditional Meal">Traditional Meal</option>
+      <option value="Dessert">Dessert</option>
+    </select>
+    <button id="addSnackBtn">Add Snack</button>
+    
+    <div id="addSnackStatus" class="status-message" style="display: none;"></div>
+
     <div id="results"></div>
-    <script src="script.js" type="module"></script>
+
+    <!-- Description Selection Modal -->
+    <div id="descriptionModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Choose Description for <span id="modalSnackName"></span></h2>
+          <button class="modal-close" id="closeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-instruction">Select a description or edit it to your preference:</p>
+          
+          <div class="description-option">
+            <label>
+              <input type="radio" name="descriptionChoice" value="ai" checked />
+              <strong>AI Generated 🤖</strong>
+            </label>
+            <textarea id="aiDescription" class="description-textarea" rows="3"></textarea>
+          </div>
+
+          <div class="description-option">
+            <label>
+              <input type="radio" name="descriptionChoice" value="default" />
+              <strong>Default 📝</strong>
+            </label>
+            <textarea id="defaultDescription" class="description-textarea" rows="3"></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button id="confirmDescriptionBtn" class="btn-primary">Confirm & Add Snack</button>
+            <button id="cancelDescriptionBtn" class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
   </body>
 </html>

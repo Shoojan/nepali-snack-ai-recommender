@@ -1,0 +1,19 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": [
+    "node_modules",
+    "public",
+    "*.json",
+    "snack_embeddings.json",
+    "*.py",
+    "venv",
+    ".git"
+  ],
+  "exec": "node src/server.js",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 1000
+}
+
