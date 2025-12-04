@@ -27,7 +27,8 @@ A sophisticated, interactive web application that recommends **Nepali snacks** b
 
 ## Screenshots
 
-<img width="1395" height="678" alt="image" src="https://github.com/user-attachments/assets/daf93031-972d-41c6-85e6-b9e5e98794d5" />
+<img width="1735" height="767" alt="image" src="https://github.com/user-attachments/assets/0e6bd013-8ebf-49ce-b2ba-e37c2a0b392a" />
+
 
 ---
 
