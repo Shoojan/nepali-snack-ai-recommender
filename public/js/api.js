@@ -24,15 +24,26 @@ async function apiRequest(url, options = {}) {
     // Try to parse JSON, fallback to text
     let data;
     const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json().catch(() => null);
-    } else {
-      const text = await response.text();
-      data = text ? { error: text } : null;
+    
+    try {
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = text ? { error: text } : null;
+      }
+    } catch (parseError) {
+      // If parsing fails, create error object
+      const text = await response.text().catch(() => "");
+      data = { error: text || "Failed to parse response" };
     }
 
     if (!response.ok) {
-      const errorMessage = data?.error || response.statusText || "Request failed";
+      const errorMessage = 
+        data?.error || 
+        (typeof data === "string" ? data : null) ||
+        response.statusText || 
+        `Request failed with status ${response.status}`;
       throw new Error(errorMessage);
     }
 
@@ -57,11 +68,15 @@ export async function getSnacks() {
 /**
  * Get recommendations for a snack
  * @param {string} snackName - Name of the snack
+ * @param {string} likedSnacks - Comma-separated list of liked snack names (optional)
  * @returns {Promise<object>} Recommendations object
  */
-export async function getRecommendations(snackName) {
+export async function getRecommendations(snackName, likedSnacks = "") {
   const encodedName = encodeURIComponent(snackName);
-  return apiRequest(`/recommend/${encodedName}`);
+  const url = likedSnacks
+    ? `/recommend/${encodedName}?likedSnacks=${encodeURIComponent(likedSnacks)}`
+    : `/recommend/${encodedName}`;
+  return apiRequest(url);
 }
 
 /**

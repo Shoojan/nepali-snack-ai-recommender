@@ -231,12 +231,20 @@ export function getModalSnackData() {
   return null;
 }
 
+// Track if listeners are initialized to prevent duplicates
+let listenersInitialized = false;
+
 /**
- * Initialize modal event listeners
+ * Initialize modal event listeners (only once)
  * @param {Function} onConfirm - Callback for confirm button
  * @param {Function} onCancel - Callback for cancel button
  */
 export function initModalListeners(onConfirm, onCancel) {
+  if (listenersInitialized) {
+    console.warn("Modal listeners already initialized");
+    return;
+  }
+
   const elements = getModalElements();
 
   // Confirm button
@@ -274,5 +282,7 @@ export function initModalListeners(onConfirm, onCancel) {
       updateSelectionStyles(elements, selected);
     });
   });
+
+  listenersInitialized = true;
 }
 

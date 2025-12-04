@@ -25,7 +25,8 @@ input {
 
 .result-item {
   margin: 10px auto;
-  padding: 15px;
+  padding: 15px 50px 15px 15px;
+  /* Extra right padding for like button */
   border-radius: 12px;
   display: inline-block;
   font-weight: bold;
@@ -35,6 +36,7 @@ input {
   transform: scale(0);
   min-width: 220px;
   transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
 }
 
 .result-item[data-category="Street Food"] {
@@ -52,6 +54,145 @@ input {
 .result-item:hover {
   transform: scale(1.15);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Same category highlighting */
+.result-item.same-category {
+  border: 3px solid #4caf50;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  position: relative;
+}
+
+.result-item.same-category::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+  z-index: -1;
+}
+
+/* Liked snack highlighting */
+.result-item.liked {
+  border: 2px solid #e91e63;
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+}
+
+/* Result title container */
+.result-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+  padding-right: 0;
+  /* Ensure no overlap with like button */
+  max-width: calc(100% - 10px);
+  /* Leave space for button */
+}
+
+.result-title {
+  flex: 1;
+  font-size: 18px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.result-category {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: normal;
+}
+
+/* Badges */
+.result-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  /* Prevent badges from shrinking */
+  align-items: flex-start;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-category {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.badge-liked {
+  background: rgba(233, 30, 99, 0.2);
+  color: #c2185b;
+  border: 1px solid rgba(233, 30, 99, 0.4);
+}
+
+/* Like button */
+.like-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  padding: 0;
+  margin: 0;
+}
+
+.like-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 1);
+}
+
+.like-button.liked {
+  background: rgba(233, 30, 99, 0.1);
+  border-color: #e91e63;
+  animation: heartBeat 0.5s ease;
+}
+
+@keyframes heartBeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.2);
+  }
+
+  50% {
+    transform: scale(0.9);
+  }
+
+  75% {
+    transform: scale(1.1);
+  }
 }
 
 .similarity-bar-container {
@@ -201,6 +342,7 @@ input[type="text"] {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -223,6 +365,7 @@ input[type="text"] {
     transform: translateY(50px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

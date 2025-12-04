@@ -6,6 +6,11 @@ export const RECOMMENDATION_CONFIG = {
   SIMILARITY_THRESHOLD: 0.6,
   CATEGORY_BOOST: 0.1,
   MAX_RECOMMENDATIONS: 5,
+  // Weighted scoring: 70% category match, 30% embedding similarity
+  CATEGORY_WEIGHT: 0.7,
+  SIMILARITY_WEIGHT: 0.3,
+  // User personalization boost
+  LIKED_BOOST: 0.15, // Additional boost for previously liked snacks
 };
 
 export const DEFAULT_CATEGORY = "Street Food";

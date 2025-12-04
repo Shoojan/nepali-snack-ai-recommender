@@ -26,14 +26,27 @@ router.get(
 /**
  * GET /recommend/:snack
  * Get recommendations for a snack
+ * Query params: likedSnacks (comma-separated list of liked snack names)
  */
 router.get(
   "/recommend/:snack",
   asyncHandler(async (req, res) => {
     const snackName = decodeURIComponent(req.params.snack);
-    logger.debug(`GET /recommend/${snackName} - Getting recommendations`);
+    const likedSnacksParam = req.query.likedSnacks;
+    
+    // Parse liked snacks from query parameter
+    const likedSnacks = likedSnacksParam
+      ? new Set(likedSnacksParam.split(",").map((s) => s.trim()).filter(Boolean))
+      : new Set();
+    
+    logger.debug(`GET /recommend/${snackName} - Getting recommendations`, {
+      likedCount: likedSnacks.size,
+    });
 
-    const result = await recommendationService.getRecommendations(snackName);
+    const result = await recommendationService.getRecommendations(
+      snackName,
+      likedSnacks
+    );
     res.json(result);
   })
 );

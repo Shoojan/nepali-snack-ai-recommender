@@ -6,6 +6,7 @@
 import * as api from "./js/api.js";
 import * as ui from "./js/ui.js";
 import * as modal from "./js/modal.js";
+import * as userPrefs from "./js/userPreferences.js";
 
 // DOM elements
 const snackSelect = document.getElementById("snackSelect");
@@ -62,21 +63,62 @@ async function loadSnacks() {
  * Create recommendation item element
  * @param {object} rec - Recommendation object
  * @param {number} index - Index for animation delay
+ * @param {string} currentCategory - Category of the current snack
  * @returns {HTMLElement} Recommendation element
  */
-function createRecommendationElement(rec, index) {
+function createRecommendationElement(rec, index, currentCategory) {
   const div = document.createElement("div");
+  const category = snackCategories[rec.name] || "Other";
+  const isSameCategory = rec.isSameCategory || category === currentCategory;
+  const isLiked = rec.isLiked || userPrefs.isLiked(rec.name);
+  
+  // Add classes for styling
   div.className = "result-item";
-  div.setAttribute("data-category", snackCategories[rec.name] || "Other");
+  if (isSameCategory) {
+    div.classList.add("same-category");
+  }
+  if (isLiked) {
+    div.classList.add("liked");
+  }
+  
+  div.setAttribute("data-category", category);
   div.style.animationDelay = `${index * 0.15}s`;
 
-  // Title
+  // Title with badges
+  const titleContainer = document.createElement("div");
+  titleContainer.className = "result-title-container";
+  
   const title = document.createElement("div");
   title.className = "result-title";
-  title.textContent = `${rec.name} ${snackEmojis[rec.name] || "🍴"} (${
-    snackCategories[rec.name] || "Other"
-  })`;
-  div.appendChild(title);
+  title.textContent = `${rec.name} ${snackEmojis[rec.name] || "🍴"}`;
+  titleContainer.appendChild(title);
+  
+  // Badges
+  const badges = document.createElement("div");
+  badges.className = "result-badges";
+  
+  if (isSameCategory) {
+    const categoryBadge = document.createElement("span");
+    categoryBadge.className = "badge badge-category";
+    categoryBadge.textContent = "📂 Same Category";
+    badges.appendChild(categoryBadge);
+  }
+  
+  if (isLiked) {
+    const likedBadge = document.createElement("span");
+    likedBadge.className = "badge badge-liked";
+    likedBadge.textContent = "❤️ Liked";
+    badges.appendChild(likedBadge);
+  }
+  
+  titleContainer.appendChild(badges);
+  div.appendChild(titleContainer);
+
+  // Category label
+  const categoryLabel = document.createElement("div");
+  categoryLabel.className = "result-category";
+  categoryLabel.textContent = `(${category})`;
+  div.appendChild(categoryLabel);
 
   // Similarity bar
   const barContainer = document.createElement("div");
@@ -89,11 +131,59 @@ function createRecommendationElement(rec, index) {
   barContainer.appendChild(bar);
   div.appendChild(barContainer);
 
+  // Like button
+  const likeButton = document.createElement("button");
+  likeButton.className = `like-button ${isLiked ? "liked" : ""}`;
+  likeButton.innerHTML = isLiked ? "❤️" : "🤍";
+  likeButton.title = isLiked ? "Unlike this snack" : "Like this snack";
+  likeButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleLike(rec.name, likeButton);
+  });
+  div.appendChild(likeButton);
+
   // Visual feedback based on score
   div.style.opacity = 0.5 + 0.5 * rec.score;
   div.style.transform = `scale(${0.9 + 0.2 * rec.score})`;
 
   return div;
+}
+
+/**
+ * Toggle like status for a snack
+ * @param {string} snackName - Name of the snack
+ * @param {HTMLElement} button - Like button element
+ */
+function toggleLike(snackName, button) {
+  const isLiked = userPrefs.isLiked(snackName);
+  
+  if (isLiked) {
+    userPrefs.unlikeSnack(snackName);
+    button.innerHTML = "🤍";
+    button.classList.remove("liked");
+    button.title = "Like this snack";
+  } else {
+    userPrefs.likeSnack(snackName);
+    button.innerHTML = "❤️";
+    button.classList.add("liked");
+    button.title = "Unlike this snack";
+  }
+  
+  // Update the parent element's liked class
+  const resultItem = button.closest(".result-item");
+  if (resultItem) {
+    if (isLiked) {
+      resultItem.classList.remove("liked");
+    } else {
+      resultItem.classList.add("liked");
+    }
+  }
+  
+  // Refresh recommendations to apply personalization boost
+  const snackSelect = document.getElementById("snackSelect");
+  if (snackSelect && snackSelect.value) {
+    fetchRecommendations(snackSelect.value);
+  }
 }
 
 /**
@@ -115,7 +205,9 @@ async function fetchRecommendations(snack) {
   ui.showLoading("Fetching recommendations...");
 
   try {
-    const data = await api.getRecommendations(snack);
+    // Get liked snacks and pass to API for personalization
+    const likedSnacks = userPrefs.getLikedSnacksAsString();
+    const data = await api.getRecommendations(snack, likedSnacks);
 
     if (!data.recommendations || !Array.isArray(data.recommendations)) {
       throw new Error("Invalid response format");
@@ -126,10 +218,13 @@ async function fetchRecommendations(snack) {
       return;
     }
 
+    // Get current snack's category for highlighting
+    const currentCategory = snackCategories[snack] || "Other";
+
     // Display recommendations
     ui.clearResults();
     data.recommendations.forEach((rec, i) => {
-      const element = createRecommendationElement(rec, i);
+      const element = createRecommendationElement(rec, i, currentCategory);
       resultsDiv.appendChild(element);
     });
   } catch (err) {

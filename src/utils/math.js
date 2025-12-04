@@ -38,4 +38,3 @@ export function cosineSimilarity(vecA, vecB) {
 
   return dot / (magA * magB);
 }
-

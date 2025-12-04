@@ -5,18 +5,46 @@
 import snackRepository from "../repositories/snackRepository.js";
 import { cosineSimilarity } from "../utils/math.js";
 import logger from "../utils/logger.js";
-import {
-  RECOMMENDATION_CONFIG,
-  DEFAULT_CATEGORY,
-} from "../constants/index.js";
+import { RECOMMENDATION_CONFIG, DEFAULT_CATEGORY } from "../constants/index.js";
+
+/**
+ * Calculate weighted score for a recommendation
+ * @param {boolean} isSameCategory - Whether snack is in same category
+ * @param {number} similarityScore - Cosine similarity score (0-1)
+ * @param {boolean} isLiked - Whether user has liked this snack before
+ * @returns {number} Weighted score (0-1)
+ */
+function calculateWeightedScore(
+  isSameCategory,
+  similarityScore,
+  isLiked = false
+) {
+  const categoryScore = isSameCategory ? 1.0 : 0.0;
+
+  // Weighted combination: 70% category, 30% similarity
+  let weightedScore =
+    RECOMMENDATION_CONFIG.CATEGORY_WEIGHT * categoryScore +
+    RECOMMENDATION_CONFIG.SIMILARITY_WEIGHT * similarityScore;
+
+  // Add boost for liked snacks
+  if (isLiked) {
+    weightedScore = Math.min(
+      1.0,
+      weightedScore + RECOMMENDATION_CONFIG.LIKED_BOOST
+    );
+  }
+
+  return weightedScore;
+}
 
 class RecommendationService {
   /**
    * Get recommendations for a snack
    * @param {string} snackName - Name of the snack to get recommendations for
+   * @param {Set<string>} likedSnacks - Set of snack names user has liked (optional)
    * @returns {Promise<object>} Recommendations with scores
    */
-  async getRecommendations(snackName) {
+  async getRecommendations(snackName, likedSnacks = new Set()) {
     if (!snackName || typeof snackName !== "string") {
       throw new Error("Snack name must be a non-empty string");
     }
@@ -36,15 +64,16 @@ class RecommendationService {
         throw new Error(`Snack '${snackName}' has invalid embedding vector`);
       }
 
-      // Get all other snacks
-      const allSnacks = await snackRepository.findAllExcept(snackName);
+      const category = snack.category;
 
+      // Get all snacks except the current one
+      const allSnacks = await snackRepository.findAllExcept(snackName);
       if (allSnacks.length === 0) {
         logger.warn("No other snacks found for recommendations");
         return { recommendations: [] };
       }
 
-      // Calculate similarity scores
+      // Calculate weighted scores for all snacks
       const recommendations = allSnacks
         .map((s) => {
           if (!s.vector || !Array.isArray(s.vector)) {
@@ -53,18 +82,23 @@ class RecommendationService {
           }
 
           try {
-            let score = cosineSimilarity(snack.vector, s.vector);
+            const similarityScore = cosineSimilarity(snack.vector, s.vector);
+            const isSameCategory = s.category === category;
+            const isLiked = likedSnacks.has(s.name);
 
-            // Apply category boost
-            if (s.category === snack.category) {
-              score += RECOMMENDATION_CONFIG.CATEGORY_BOOST;
-            }
+            // Calculate weighted score: 70% category, 30% similarity, + boost for liked
+            const weightedScore = calculateWeightedScore(
+              isSameCategory,
+              similarityScore,
+              isLiked
+            );
 
             return {
-              name: s.name,
-              emoji: s.emoji || "🍴",
-              category: s.category || DEFAULT_CATEGORY,
-              score: Math.min(score, 1.0), // Cap at 1.0
+              snack: s,
+              similarityScore, // Keep original similarity for display
+              weightedScore, // Use weighted score for ranking
+              isSameCategory,
+              isLiked,
             };
           } catch (error) {
             logger.error(`Error calculating similarity for ${s.name}`, error);
@@ -73,10 +107,20 @@ class RecommendationService {
         })
         .filter((rec) => rec !== null) // Remove invalid recommendations
         .filter(
-          (rec) => rec.score >= RECOMMENDATION_CONFIG.SIMILARITY_THRESHOLD
-        ) // Filter by threshold
-        .sort((a, b) => b.score - a.score) // Sort by score descending
-        .slice(0, RECOMMENDATION_CONFIG.MAX_RECOMMENDATIONS); // Limit results
+          (rec) =>
+            rec.similarityScore >= RECOMMENDATION_CONFIG.SIMILARITY_THRESHOLD
+        ) // Filter by similarity threshold
+        .sort((a, b) => b.weightedScore - a.weightedScore) // Sort by weighted score
+        .slice(0, RECOMMENDATION_CONFIG.MAX_RECOMMENDATIONS)
+        .map((rec) => ({
+          name: rec.snack.name,
+          emoji: rec.snack.emoji,
+          category: rec.snack.category,
+          score: rec.weightedScore, // Use weighted score for display
+          similarityScore: rec.similarityScore, // Keep for reference
+          isSameCategory: rec.isSameCategory,
+          isLiked: rec.isLiked,
+        }));
 
       logger.info(
         `Generated ${recommendations.length} recommendations for ${snackName}`
@@ -91,4 +135,3 @@ class RecommendationService {
 }
 
 export default new RecommendationService();
-
